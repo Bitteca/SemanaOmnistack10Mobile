@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 
 import api from '../services/api';
+import { connect, disconnect, subscribeToNewDevs } from '../services/socket';
 
 import MapView, { Marker, Callout } from 'react-native-maps';
 import {
@@ -48,6 +49,18 @@ const Main = ({ navigation }) => {
     loadInitialPosition();
   }, []);
 
+  useEffect(() => {
+    subscribeToNewDevs(dev => setDevs([...devs, dev]));
+  }, [devs]);
+
+  function setupWebsocket() {
+    disconnect();
+
+    const { latitude, longitude } = currentRegion;
+
+    connect(latitude, longitude, techs);
+  }
+
   async function loadDevs() {
     const { latitude, longitude } = currentRegion;
 
@@ -60,6 +73,7 @@ const Main = ({ navigation }) => {
     });
 
     setDevs(response.data.devs);
+    setupWebsocket();
   }
 
   function handleRegionChanged(region) {
